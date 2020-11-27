@@ -1,17 +1,49 @@
 package handlers
 
 import (
+	"golang-fifa-world-cup-web-service/data"
 	"net/http"
 )
 
 // RootHandler returns an empty body status code
 func RootHandler(res http.ResponseWriter, req *http.Request) {
-
+	res.WriteHeader(http.StatusNoContent)
 }
 
 // ListWinners returns winners from the list
 func ListWinners(res http.ResponseWriter, req *http.Request) {
+	// Set the header.
+	res.Header().Set("Content-Type", "application/json")
 
+	// Get the year.
+	year := req.URL.Query().Get("year")
+
+	// If no year, list all.
+	if year == "" {
+		// Get all winners.
+		winners, err := data.ListAllJSON()
+
+		// Handle errors.
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Respond with winners.
+		res.Write(winners)
+	} else {
+		// Get winners by year.
+		filteredWinners, err := data.ListAllByYear(year)
+
+		// Handle errors.
+		if err != nil {
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// Respond with winners by year.
+		res.Write(filteredWinners)
+	}
 }
 
 // AddNewWinner adds new winner to the list
